@@ -1,0 +1,13 @@
+<configuration>
+    <!-- Определяем уровень логирования и формат -->
+    <appender name="Console" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss} - %msg%n</pattern> <!-- формат выводимых сообщений -->
+        </encoder>
+    </appender>
+
+    <!-- Устанавливаем логирование для всех пакетов -->
+    <root level="debug">
+        <appender-ref ref="Console" />
+    </root>
+</configuration>
