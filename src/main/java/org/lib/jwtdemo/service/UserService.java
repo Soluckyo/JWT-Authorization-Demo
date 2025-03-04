@@ -1,12 +1,13 @@
 package org.lib.jwtdemo.service;
 
 import lombok.RequiredArgsConstructor;
+import org.lib.jwtdemo.entity.Role;
 import org.lib.jwtdemo.entity.User;
 import org.lib.jwtdemo.repo.UserRepo;
-import org.lib.jwtdemo.security.JwtAuthenticationDTO;
-import org.lib.jwtdemo.security.JwtService;
-import org.lib.jwtdemo.security.RefreshTokenDTO;
-import org.lib.jwtdemo.security.UserCredentialsDTO;
+import org.lib.jwtdemo.dto.JwtResponseDTO;
+import org.lib.jwtdemo.security.JwtUtils;
+import org.lib.jwtdemo.dto.RefreshTokenDTO;
+import org.lib.jwtdemo.dto.JwtRequestDTO;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -19,7 +20,7 @@ import java.util.Optional;
 public class UserService {
 
     private final UserRepo userRepo;
-    private final JwtService jwtService;
+    private final JwtUtils jwtUtils;
     private final PasswordEncoder passwordEncoder;
 
     public List<User> getAll() {
@@ -28,27 +29,28 @@ public class UserService {
 
     public User addUser(User user) {
         user.setPassword(passwordEncoder.encode(user.getPassword()));
+        user.setRole(Role.USER);
         return userRepo.save(user);
     }
 
-    public JwtAuthenticationDTO signIn(UserCredentialsDTO userCredentialsDTO) throws AuthenticationException {
-        User user = findByCredentials(userCredentialsDTO);
-        return jwtService.generateAuthToken(user.getEmail());
+    public JwtResponseDTO signIn(JwtRequestDTO jwtRequestDTO) throws AuthenticationException {
+        User user = findByCredentials(jwtRequestDTO);
+        return jwtUtils.generateAuthToken(user);
     }
 
-    public JwtAuthenticationDTO refreshToken(RefreshTokenDTO refreshTokenDTO) throws Exception {
+    public JwtResponseDTO refreshToken(RefreshTokenDTO refreshTokenDTO) throws Exception {
         String refreshToken = refreshTokenDTO.getRefreshToken();
-        if(refreshToken == null && jwtService.validateJwtToken(refreshToken)){
-            User user = findByEmail(jwtService.getEmailFromToken(refreshToken));
-            return jwtService.refreshBaseToken(user.getEmail(), refreshToken);
+        if(refreshToken == null && jwtUtils.validateJwtToken(refreshToken)){
+            User user = findByEmail(jwtUtils.getEmailFromToken(refreshToken));
+            return jwtUtils.refreshBaseToken(user, refreshToken);
         }throw new AuthenticationException("Invalid refresh token");
     }
 
-    private User findByCredentials(UserCredentialsDTO userCredentialsDTO) throws AuthenticationException {
-        Optional<User> userOptional = userRepo.findByEmail(userCredentialsDTO.getEmail());
+    private User findByCredentials(JwtRequestDTO jwtRequestDTO) throws AuthenticationException {
+        Optional<User> userOptional = userRepo.findByEmail(jwtRequestDTO.getEmail());
         if(userOptional.isPresent()) {
             User user = userOptional.get();
-            if(passwordEncoder.matches(userCredentialsDTO.getPassword(), user.getPassword())) {
+            if(passwordEncoder.matches(jwtRequestDTO.getPassword(), user.getPassword())) {
                 return user;
             }
         } throw new AuthenticationException("Email or password is not correct");
@@ -56,5 +58,9 @@ public class UserService {
 
     private User findByEmail(String email) throws Exception {
         return userRepo.findByEmail(email).orElseThrow(()-> new Exception(String.format("Email %s not found", email)));
+    }
+
+    public void setRole(Long userId, Role role){
+        userRepo.findById(userId).ifPresent(user -> user.setRole(role));
     }
 }

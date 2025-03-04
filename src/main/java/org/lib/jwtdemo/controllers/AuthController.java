@@ -2,9 +2,9 @@ package org.lib.jwtdemo.controllers;
 
 
 import lombok.RequiredArgsConstructor;
-import org.lib.jwtdemo.security.JwtAuthenticationDTO;
-import org.lib.jwtdemo.security.RefreshTokenDTO;
-import org.lib.jwtdemo.security.UserCredentialsDTO;
+import org.lib.jwtdemo.dto.JwtResponseDTO;
+import org.lib.jwtdemo.dto.RefreshTokenDTO;
+import org.lib.jwtdemo.dto.JwtRequestDTO;
 import org.lib.jwtdemo.service.UserService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -22,20 +22,20 @@ public class AuthController {
 
 
     @PostMapping("/sign_in")
-    public ResponseEntity<JwtAuthenticationDTO> signIn(@RequestBody UserCredentialsDTO userCredentialsDTO){
+    public ResponseEntity<JwtResponseDTO> signIn(@RequestBody JwtRequestDTO jwtRequestDTO){
         try{
-            JwtAuthenticationDTO jwtAuthenticationDTO = userService.signIn(userCredentialsDTO);
-            return ResponseEntity.ok(jwtAuthenticationDTO);
+            JwtResponseDTO jwtResponseDTO = userService.signIn(jwtRequestDTO);
+            return ResponseEntity.ok(jwtResponseDTO);
         }catch (AuthenticationException e){
             throw new RuntimeException("Authentication failed" + e.getMessage());
         }
     }
 
     @PostMapping("/refresh")
-    public ResponseEntity<JwtAuthenticationDTO> refresh(@RequestBody RefreshTokenDTO refreshTokenDTO) {
+    public ResponseEntity<JwtResponseDTO> refresh(@RequestBody RefreshTokenDTO refreshTokenDTO) {
         try{
-            JwtAuthenticationDTO jwtAuthenticationDTO = userService.refreshToken(refreshTokenDTO);
-            return ResponseEntity.ok(jwtAuthenticationDTO);
+            JwtResponseDTO jwtResponseDTO = userService.refreshToken(refreshTokenDTO);
+            return ResponseEntity.ok(jwtResponseDTO);
         }catch (Exception e){
             throw new RuntimeException("failed" + e.getMessage());
         }

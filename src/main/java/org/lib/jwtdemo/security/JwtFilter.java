@@ -6,18 +6,23 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import org.lib.jwtdemo.entity.Role;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.Collection;
+import java.util.List;
 
 @Component
 @RequiredArgsConstructor
 public class JwtFilter extends OncePerRequestFilter {
 
-    private final JwtService jwtService;
+    private final JwtUtils jwtUtils;
     private final CustomUserService customUserService;
 
     @Override
@@ -26,17 +31,26 @@ public class JwtFilter extends OncePerRequestFilter {
                                     @NonNull FilterChain filterChain) throws ServletException, IOException {
 
         String token = getTokenFromRequest(request);
-        if (token != null && jwtService.validateJwtToken(token)) {
-            setCustomUserDetailsToSecurityContextHolder(token);
+        if (token != null){
+            if(jwtUtils.validateJwtToken(token)) {
+                setCustomUserDetailsToSecurityContextHolder(token);
+            }else{
+                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid or expired JWT token");
+                return;
+            }
         }
         filterChain.doFilter(request, response);
     }
 
     private void setCustomUserDetailsToSecurityContextHolder(String token) {
-        String email = jwtService.getEmailFromToken(token);
+        String email = jwtUtils.getEmailFromToken(token);
+        Role role = jwtUtils.getRoleFromToken(token);
         CustomUserDetails customUserDetails = customUserService.loadUserByUsername(email);
+
+        Collection<GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority("ROLE_" + role.name()));
+
         UsernamePasswordAuthenticationToken authentication =
-                new UsernamePasswordAuthenticationToken(customUserDetails,null, customUserDetails.getAuthorities());
+                new UsernamePasswordAuthenticationToken(customUserDetails,null, authorities);
         SecurityContextHolder.getContext().setAuthentication(authentication);
     }
 

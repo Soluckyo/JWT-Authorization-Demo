@@ -1,9 +1,9 @@
-package org.lib.jwtdemo.security;
+package org.lib.jwtdemo.dto;
 
 import lombok.Data;
 
 @Data
-public class UserCredentialsDTO {
+public class JwtRequestDTO {
     private String email;
     private String password;
 }

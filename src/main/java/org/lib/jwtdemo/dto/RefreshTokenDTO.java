@@ -1,4 +1,4 @@
-package org.lib.jwtdemo.security;
+package org.lib.jwtdemo.dto;
 
 import lombok.Data;
 

@@ -1,9 +1,9 @@
-package org.lib.jwtdemo.security;
+package org.lib.jwtdemo.dto;
 
 import lombok.Data;
 
 @Data
-public class JwtAuthenticationDTO {
+public class JwtResponseDTO {
     private String token;
     private String refreshToken;
 }
