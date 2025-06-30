@@ -71,7 +71,7 @@ public class JwtUtils {
 
     //генерация jwt токена
     public String generateJwtToken(User user) {
-        Date date = Date.from(LocalDateTime.now().plusMinutes(1).atZone(ZoneId.systemDefault()).toInstant());
+        Date date = Date.from(LocalDateTime.now().plusMinutes(10).atZone(ZoneId.systemDefault()).toInstant());
         Role role = user.getRole();
         return Jwts.builder()
                 .setSubject(user.getEmail())
